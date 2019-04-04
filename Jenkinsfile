@@ -506,6 +506,8 @@ pipeline {
                                     New-Item -ItemType directory -Path "src\\third_party\\widevine\\scripts"
                                     Copy-Item "C:\\jenkins\\signature_generator.py" -Destination "src\\third_party\\widevine\\scripts\\"
 
+                                    Import-PfxCertificate -FilePath \"${SIGN_WIDEVINE_CERT}\" -CertStoreLocation "Cert:\\LocalMachine\\My" -Password (ConvertTo-SecureString -String \"${SIGN_WIDEVINE_PASSPHRASE}\" -AsPlaintext -Force)
+
                                     npm run build -- ${BUILD_TYPE} --channel=${CHANNEL} --official_build=true
                                 """
                             }
@@ -686,6 +688,8 @@ pipeline {
 
                                     New-Item -ItemType directory -Path "src\\third_party\\widevine\\scripts"
                                     Copy-Item "C:\\jenkins\\signature_generator.py" -Destination "src\\third_party\\widevine\\scripts\\"
+
+                                    Import-PfxCertificate -FilePath \"${SIGN_WIDEVINE_CERT}\" -CertStoreLocation "Cert:\\LocalMachine\\My" -Password (ConvertTo-SecureString -String \"${SIGN_WIDEVINE_PASSPHRASE}\" -AsPlaintext -Force)
 
                                     npm run build -- ${BUILD_TYPE} --channel=${CHANNEL} --official_build=true --target_arch=ia32
                                 """
