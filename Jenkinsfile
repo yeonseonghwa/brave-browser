@@ -327,7 +327,7 @@ pipeline {
                                     mkdir -p src/third_party/widevine/scripts/
                                     cp ${HOME}/signature_generator.py src/third_party/widevine/scripts/
 
-                                    npm run build -- ${BUILD_TYPE} --channel=${CHANNEL} --official_build=true
+                                    npm run build -- ${BUILD_TYPE} --channel=${CHANNEL} --official_build=true --skip_signing
                                 """
                             }
                         }
@@ -380,7 +380,7 @@ pipeline {
                                 expression { "${RELEASE_TYPE}" == "ci" }
                             }
                             steps {
-                                sh "npm run create_dist -- ${BUILD_TYPE} --channel=${CHANNEL} --official_build=true"
+                                sh "npm run create_dist -- ${BUILD_TYPE} --channel=${CHANNEL} --official_build=true --skip_signing"
                             }
                         }
                         stage("dist-release") {
@@ -510,6 +510,7 @@ pipeline {
                                     Copy-Item "C:\\jenkins\\signature_generator.py" -Destination "src\\third_party\\widevine\\scripts\\"
 
                                     Import-Certificate -FilePath \"${SIGN_WIDEVINE_CERT}\" -CertStoreLocation "Cert:\\LocalMachine\\My"
+                                    Import-PfxCertificate -FilePath \"${KEY_PFX_PATH}\" -CertStoreLocation "Cert:\\LocalMachine\\My" -Password (ConvertTo-SecureString -String \"${AUTHENTICODE_PASSWORD_UNESCAPED}\" -AsPlaintext -Force)
 
                                     npm run build -- ${BUILD_TYPE} --channel=${CHANNEL} --official_build=true
                                 """
@@ -545,28 +546,9 @@ pipeline {
                             }
                         }
                         // TODO: add test-browser
-                        stage("dist-ci") {
-                            when {
-                                expression { "${RELEASE_TYPE}" == "ci" }
-                            }
+                        stage("dist") {
                             steps {
-                                powershell """
-                                    Import-PfxCertificate -FilePath \"${KEY_PFX_PATH}\" -CertStoreLocation "Cert:\\LocalMachine\\My" -Password (ConvertTo-SecureString -String \"${AUTHENTICODE_PASSWORD_UNESCAPED}\" -AsPlaintext -Force)
-                                    npm run create_dist -- ${BUILD_TYPE} --channel=${CHANNEL} --official_build=true
-                                """
-                                powershell '(Get-Content src\\brave\\vendor\\omaha\\omaha\\hammer-brave.bat) | % { $_ -replace "10.0.15063.0\", "" } | Set-Content src\\brave\\vendor\\omaha\\omaha\\hammer-brave.bat'
-                                powershell "npm run create_dist -- ${BUILD_TYPE} --channel=${CHANNEL} --build_omaha --tag_ap=x64-${CHANNEL} --target_arch=x64 --official_build=true"
-                            }
-                        }
-                        stage("dist-release") {
-                            when {
-                                expression { "${RELEASE_TYPE}" == "release" }
-                            }
-                            steps {
-                                powershell """
-                                    Import-PfxCertificate -FilePath \"${KEY_PFX_PATH}\" -CertStoreLocation "Cert:\\LocalMachine\\My" -Password (ConvertTo-SecureString -String \"${AUTHENTICODE_PASSWORD_UNESCAPED}\" -AsPlaintext -Force)
-                                    npm run create_dist -- ${BUILD_TYPE} --channel=${CHANNEL} --official_build=true
-                                """
+                                powershell "npm run create_dist -- ${BUILD_TYPE} --channel=${CHANNEL} --official_build=true"
                                 powershell '(Get-Content src\\brave\\vendor\\omaha\\omaha\\hammer-brave.bat) | % { $_ -replace "10.0.15063.0\", "" } | Set-Content src\\brave\\vendor\\omaha\\omaha\\hammer-brave.bat'
                                 powershell "npm run create_dist -- ${BUILD_TYPE} --channel=${CHANNEL} --build_omaha --tag_ap=x64-${CHANNEL} --target_arch=x64 --official_build=true"
                             }
@@ -693,6 +675,7 @@ pipeline {
                                     Copy-Item "C:\\jenkins\\signature_generator.py" -Destination "src\\third_party\\widevine\\scripts\\"
 
                                     Import-Certificate -FilePath \"${SIGN_WIDEVINE_CERT}\" -CertStoreLocation "Cert:\\LocalMachine\\My"
+                                    Import-PfxCertificate -FilePath \"${KEY_PFX_PATH}\" -CertStoreLocation "Cert:\\LocalMachine\\My" -Password (ConvertTo-SecureString -String \"${AUTHENTICODE_PASSWORD_UNESCAPED}\" -AsPlaintext -Force)
 
                                     npm run build -- ${BUILD_TYPE} --channel=${CHANNEL} --official_build=true --target_arch=ia32
                                 """
@@ -727,31 +710,11 @@ pipeline {
                                 }
                             }
                         }
-                        // TODO: add test-browser
-                        stage("dist-ci") {
-                            when {
-                                expression { "${RELEASE_TYPE}" == "ci" }
-                            }
+                        stage("dist") {
                             steps {
-                                powershell """
-                                    Import-PfxCertificate -FilePath \"${KEY_PFX_PATH}\" -CertStoreLocation "Cert:\\LocalMachine\\My" -Password (ConvertTo-SecureString -String \"${AUTHENTICODE_PASSWORD_UNESCAPED}\" -AsPlaintext -Force)
-                                    npm run create_dist -- ${BUILD_TYPE} --channel=${CHANNEL} --official_build=true --skip_signing
-                                """
+                                powershell "npm run create_dist -- ${BUILD_TYPE} --channel=${CHANNEL} --official_build=true"
                                 powershell '(Get-Content src\\brave\\vendor\\omaha\\omaha\\hammer-brave.bat) | % { $_ -replace "10.0.15063.0\", "" } | Set-Content src\\brave\\vendor\\omaha\\omaha\\hammer-brave.bat'
                                 powershell "npm run create_dist -- ${BUILD_TYPE} --channel=${CHANNEL} --build_omaha --tag_ap=x86-${CHANNEL} --target_arch=ia32 --official_build=true --skip_signing"
-                            }
-                        }
-                        stage("dist-release") {
-                            when {
-                                expression { "${RELEASE_TYPE}" == "release" }
-                            }
-                            steps {
-                                powershell """
-                                    Import-PfxCertificate -FilePath \"${KEY_PFX_PATH}\" -CertStoreLocation "Cert:\\LocalMachine\\My" -Password (ConvertTo-SecureString -String \"${AUTHENTICODE_PASSWORD_UNESCAPED}\" -AsPlaintext -Force)
-                                    npm run create_dist -- ${BUILD_TYPE} --channel=${CHANNEL} --official_build=true
-                                """
-                                powershell '(Get-Content src\\brave\\vendor\\omaha\\omaha\\hammer-brave.bat) | % { $_ -replace "10.0.15063.0\", "" } | Set-Content src\\brave\\vendor\\omaha\\omaha\\hammer-brave.bat'
-                                powershell "npm run create_dist -- ${BUILD_TYPE} --channel=${CHANNEL} --build_omaha --tag_ap=x86-${CHANNEL} --target_arch=ia32 --official_build=true"
                             }
                         }
                         stage("archive") {
