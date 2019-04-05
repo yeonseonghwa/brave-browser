@@ -378,7 +378,7 @@ pipeline {
                                 expression { "${RELEASE_TYPE}" == "ci" }
                             }
                             steps {
-                                sh "npm run create_dist -- ${BUILD_TYPE} --channel=${CHANNEL} --official_build=true"
+                                sh "npm run create_dist -- ${BUILD_TYPE} --channel=${CHANNEL} --official_build=true --skip_signing"
                             }
                         }
                         stage("dist-release") {
@@ -540,27 +540,7 @@ pipeline {
                             }
                         }
                         // TODO: add test-browser
-<<<<<<< HEAD
                         stage("dist") {
-=======
-                        stage("dist-ci") {
-                            when {
-                                expression { "${RELEASE_TYPE}" == "ci" }
-                            }
-                            steps {
-                                powershell """
-                                    Import-PfxCertificate -FilePath \"${KEY_PFX_PATH}\" -CertStoreLocation "Cert:\\LocalMachine\\My" -Password (ConvertTo-SecureString -String \"${AUTHENTICODE_PASSWORD_UNESCAPED}\" -AsPlaintext -Force)
-                                    npm run create_dist -- ${BUILD_TYPE} --channel=${CHANNEL} --official_build=true
-                                """
-                                powershell '(Get-Content src\\brave\\vendor\\omaha\\omaha\\hammer-brave.bat) | % { $_ -replace "10.0.15063.0\", "" } | Set-Content src\\brave\\vendor\\omaha\\omaha\\hammer-brave.bat'
-                                powershell "npm run create_dist -- ${BUILD_TYPE} --channel=${CHANNEL} --build_omaha --tag_ap=x64-${CHANNEL} --target_arch=x64 --official_build=true"
-                            }
-                        }
-                        stage("dist-release") {
-                            when {
-                                expression { "${RELEASE_TYPE}" == "release" }
-                            }
->>>>>>> 2eccb0e... Remove skip_signing for testing same as release one
                             steps {
                                 powershell "npm run create_dist -- ${BUILD_TYPE} --channel=${CHANNEL} --official_build=true"
                                 powershell '(Get-Content src\\brave\\vendor\\omaha\\omaha\\hammer-brave.bat) | % { $_ -replace "10.0.15063.0\", "" } | Set-Content src\\brave\\vendor\\omaha\\omaha\\hammer-brave.bat'
