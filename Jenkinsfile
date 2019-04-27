@@ -323,11 +323,9 @@ pipeline {
                                     npm config --userconfig=.npmrc set brave_google_api_key ${BRAVE_GOOGLE_API_KEY}
                                     npm config --userconfig=.npmrc set google_api_endpoint safebrowsing.brave.com
                                     npm config --userconfig=.npmrc set google_api_key dummytoken
-
                                     mkdir -p src/third_party/widevine/scripts/
                                     cp ${HOME}/signature_generator.py src/third_party/widevine/scripts/
-
-                                    npm run build -- ${BUILD_TYPE} --channel=${CHANNEL} --official_build=true --skip_signing
+                                    npm run build -- ${BUILD_TYPE} --channel=${CHANNEL} --official_build=true
                                 """
                             }
                         }
@@ -380,7 +378,7 @@ pipeline {
                                 expression { "${RELEASE_TYPE}" == "ci" }
                             }
                             steps {
-                                sh "npm run create_dist -- ${BUILD_TYPE} --channel=${CHANNEL} --official_build=true --skip_signing"
+                                sh "npm run create_dist -- ${BUILD_TYPE} --channel=${CHANNEL} --official_build=true"
                             }
                         }
                         stage("dist-release") {
@@ -461,6 +459,7 @@ pipeline {
                                 powershell "Remove-Item ${GIT_CACHE_PATH}/*.lock"
                                 powershell """
                                     Import-Certificate -FilePath \"${SIGN_WIDEVINE_CERT}\" -CertStoreLocation "Cert:\\LocalMachine\\My"
+                                    Import-PfxCertificate -FilePath \"${KEY_PFX_PATH}\" -CertStoreLocation "Cert:\\LocalMachine\\My" -Password (ConvertTo-SecureString -String \"${AUTHENTICODE_PASSWORD_UNESCAPED}\" -AsPlaintext -Force)
                                 """
                             }
                         }
@@ -505,13 +504,8 @@ pipeline {
                                     npm config --userconfig=.npmrc set brave_google_api_key ${BRAVE_GOOGLE_API_KEY}
                                     npm config --userconfig=.npmrc set google_api_endpoint safebrowsing.brave.com
                                     npm config --userconfig=.npmrc set google_api_key dummytoken
-
                                     New-Item -ItemType directory -Path "src\\third_party\\widevine\\scripts"
                                     Copy-Item "C:\\jenkins\\signature_generator.py" -Destination "src\\third_party\\widevine\\scripts\\"
-
-                                    Import-Certificate -FilePath \"${SIGN_WIDEVINE_CERT}\" -CertStoreLocation "Cert:\\LocalMachine\\My"
-                                    Import-PfxCertificate -FilePath \"${KEY_PFX_PATH}\" -CertStoreLocation "Cert:\\LocalMachine\\My" -Password (ConvertTo-SecureString -String \"${AUTHENTICODE_PASSWORD_UNESCAPED}\" -AsPlaintext -Force)
-
                                     npm run build -- ${BUILD_TYPE} --channel=${CHANNEL} --official_build=true
                                 """
                             }
@@ -627,6 +621,10 @@ pipeline {
                             steps {
                                 powershell "npm install --no-optional"
                                 powershell "Remove-Item ${GIT_CACHE_PATH}/*.lock"
+                                powershell """                                   
+                                    Import-Certificate -FilePath \"${SIGN_WIDEVINE_CERT}\" -CertStoreLocation "Cert:\\LocalMachine\\My"
+                                    Import-PfxCertificate -FilePath \"${KEY_PFX_PATH}\" -CertStoreLocation "Cert:\\LocalMachine\\My" -Password (ConvertTo-SecureString -String \"${AUTHENTICODE_PASSWORD_UNESCAPED}\" -AsPlaintext -Force)
+                                """
                             }
                         }
                         stage("init") {
@@ -670,13 +668,8 @@ pipeline {
                                     npm config --userconfig=.npmrc set brave_google_api_key ${BRAVE_GOOGLE_API_KEY}
                                     npm config --userconfig=.npmrc set google_api_endpoint safebrowsing.brave.com
                                     npm config --userconfig=.npmrc set google_api_key dummytoken
-
                                     New-Item -ItemType directory -Path "src\\third_party\\widevine\\scripts"
                                     Copy-Item "C:\\jenkins\\signature_generator.py" -Destination "src\\third_party\\widevine\\scripts\\"
-
-                                    Import-Certificate -FilePath \"${SIGN_WIDEVINE_CERT}\" -CertStoreLocation "Cert:\\LocalMachine\\My"
-                                    Import-PfxCertificate -FilePath \"${KEY_PFX_PATH}\" -CertStoreLocation "Cert:\\LocalMachine\\My" -Password (ConvertTo-SecureString -String \"${AUTHENTICODE_PASSWORD_UNESCAPED}\" -AsPlaintext -Force)
-
                                     npm run build -- ${BUILD_TYPE} --channel=${CHANNEL} --official_build=true --target_arch=ia32
                                 """
                             }
@@ -714,7 +707,7 @@ pipeline {
                             steps {
                                 powershell "npm run create_dist -- ${BUILD_TYPE} --channel=${CHANNEL} --official_build=true"
                                 powershell '(Get-Content src\\brave\\vendor\\omaha\\omaha\\hammer-brave.bat) | % { $_ -replace "10.0.15063.0\", "" } | Set-Content src\\brave\\vendor\\omaha\\omaha\\hammer-brave.bat'
-                                powershell "npm run create_dist -- ${BUILD_TYPE} --channel=${CHANNEL} --build_omaha --tag_ap=x86-${CHANNEL} --target_arch=ia32 --official_build=true --skip_signing"
+                                powershell "npm run create_dist -- ${BUILD_TYPE} --channel=${CHANNEL} --build_omaha --tag_ap=x86-${CHANNEL} --target_arch=ia32 --official_build=true"
                             }
                         }
                         stage("archive") {
