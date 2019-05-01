@@ -378,7 +378,7 @@ pipeline {
                                 expression { "${RELEASE_TYPE}" == "ci" }
                             }
                             steps {
-                                sh "npm run create_dist -- ${BUILD_TYPE} --channel=${CHANNEL} --official_build=true --skip_signing"
+                                sh "npm run create_dist -- ${BUILD_TYPE} --channel=${CHANNEL} --official_build=true"
                             }
                         }
                         stage("dist-release") {
