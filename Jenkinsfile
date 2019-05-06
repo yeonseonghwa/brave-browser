@@ -456,6 +456,8 @@ pipeline {
                                 expression { return !fileExists("src/brave/package.json") || RUN_INIT }
                             }
                             steps {
+                                // Workaround for https://github.com/brave/brave-browser/issues/1922
+                                powershell "Remove-Item vendor\depot_tools\win_tools-2_7_6_bin"
                                 powershell "npm run init"
                             }
                         }
@@ -630,6 +632,8 @@ pipeline {
                                 expression { return !fileExists("src/brave/package.json") || RUN_INIT }
                             }
                             steps {
+                                // Workaround for https://github.com/brave/brave-browser/issues/1922
+                                powershell "Remove-Item vendor\depot_tools\win_tools-2_7_6_bin"
                                 powershell "npm run init"
                             }
                         }
